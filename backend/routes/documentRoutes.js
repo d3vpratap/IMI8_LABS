@@ -4,11 +4,21 @@ const db = require("../db");
 const { randomUUID } = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 
 const router = express.Router();
 
-// Upload document
-router.post("/upload-document", upload.single("file"), (req, res) => {
+/* Route-level CORS (kept as-is but now works correctly) */
+router.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
+// UPLOAD DOCUMENT → POST /documents/upload
+router.post("/documents/upload", upload.single("file"), (req, res) => {
   try {
     const { assignmentId } = req.body;
 
@@ -19,7 +29,7 @@ router.post("/upload-document", upload.single("file"), (req, res) => {
     const doc = {
       id: randomUUID(),
       filename: req.file.originalname,
-      filepath: req.file.path, // e.g. uploads/assignment_1/123-file.pdf
+      filepath: req.file.path,
       filesize: req.file.size,
       assignment_id: assignmentId || null,
       created_at: new Date().toISOString(),
@@ -28,7 +38,7 @@ router.post("/upload-document", upload.single("file"), (req, res) => {
     db.prepare(
       `
       INSERT INTO documents 
-        (id, filename, filepath, filesize, assignment_id, created_at)
+      (id, filename, filepath, filesize, assignment_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
     `
     ).run(
@@ -47,25 +57,32 @@ router.post("/upload-document", upload.single("file"), (req, res) => {
   }
 });
 
-// List documents
-router.get("/list-documents", (req, res) => {
+// LIST DOCUMENTS → GET /documents
+router.get("/documents", (req, res) => {
   try {
     const rows = db
       .prepare(
-        "SELECT id, filename, filepath, filesize, assignment_id, created_at FROM documents ORDER BY created_at DESC"
+        `
+      SELECT id, filename, filepath, filesize, assignment_id, created_at 
+      FROM documents 
+      ORDER BY created_at DESC
+    `
       )
       .all();
 
-    res.json({ documents: rows });
+    // Explicitly set status + JSON content
+    res.status(200).json({
+      documents: rows,
+    });
   } catch (err) {
     console.error("List error:", err);
     res.status(500).json({ error: "Failed to fetch documents" });
   }
 });
 
-// Download document by id
-router.get("/download-document", (req, res) => {
-  const { id } = req.query;
+// DOWNLOAD DOCUMENT BY ID → GET /documents/:id
+router.get("/documents/:id", (req, res) => {
+  const { id } = req.params;
 
   try {
     const doc = db.prepare("SELECT * FROM documents WHERE id = ?").get(id);
@@ -82,9 +99,9 @@ router.get("/download-document", (req, res) => {
   }
 });
 
-// Delete document by id (file + DB)
-router.delete("/delete-document", (req, res) => {
-  const { id } = req.query;
+// DELETE DOCUMENT BY ID → DELETE /documents/:id
+router.delete("/documents/:id", (req, res) => {
+  const { id } = req.params;
 
   try {
     const doc = db.prepare("SELECT * FROM documents WHERE id = ?").get(id);
@@ -92,16 +109,16 @@ router.delete("/delete-document", (req, res) => {
     if (!doc) {
       return res.status(404).json({ error: "Document not found" });
     }
-
+  
     // Delete file if exists
     if (doc.filepath && fs.existsSync(doc.filepath)) {
       fs.unlinkSync(doc.filepath);
     }
 
-    // Remove row
+    // Remove DB record
     db.prepare("DELETE FROM documents WHERE id = ?").run(id);
 
-    res.json({ message: "Document deleted successfully" });
+    res.json({ message: "Document deleted successfully", id });
   } catch (err) {
     console.error("Delete error:", err);
     res.status(500).json({ error: "Failed to delete document" });

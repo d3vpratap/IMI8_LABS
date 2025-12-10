@@ -1,0 +1,77 @@
+IMI8_LABS – Patient Portal - Medical Documents
+
+Project Overview
+This project is a full-stack Medical Document Management System. It allows users to upload, view, download, and delete PDF documents. The backend is built using Node.js and Express, and SQLite is used to store document metadata. The frontend is built using React with Vite.
+
+Tech Stack
+
+~Frontend:
+
+React (Vite)
+
+JavaScript
+
+CSS
+
+~Backend:
+
+Node.js
+
+Express
+
+SQLite
+
+Multer
+
+How to Run the Project Locally
+
+Step 1: Clone the Repository
+git clone https://github.com/d3vpratap/IMI8_LABS.git
+
+cd IMI8_LABS
+
+Step 2: Start the Backend
+cd backend
+npm install
+node server.js
+
+Backend runs on:
+http://localhost:5050
+
+Step 3: Start the Frontend
+Open a new terminal:
+cd frontend
+npm install
+npm run dev
+
+Frontend runs on:
+http://localhost:5173
+
+API Endpoints
+
+POST /documents/upload
+Upload a PDF document
+
+GET /documents
+Fetch all uploaded documents
+
+GET /documents/:id
+Download a document
+
+DELETE /documents/:id
+Delete a document
+
+Project Status
+
+Backend API: Completed
+Database Integration: Completed
+File Upload & Storage: Completed
+Frontend Integration: Completed
+
+Author
+
+Dev Pratap Singh
+GitHub: https://github.com/d3vpratap
+
+End of README
+
