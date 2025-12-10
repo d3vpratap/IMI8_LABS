@@ -49,6 +49,7 @@ export function DocumentUpload({ onUploadSuccess }) {
     } finally {
       setUploading(false);
     }
+     setTimeout(() => setMessage(null), 3000);
   };
 
   return (

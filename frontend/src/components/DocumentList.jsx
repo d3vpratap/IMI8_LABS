@@ -10,8 +10,8 @@ export function DocumentList({ refreshTrigger }) {
     setLoading(true);
     setMessage(null);
     try {
-      const docs = await api.listDocuments();
-      setDocuments(docs);
+      const data = await api.listDocuments();
+      setDocuments(data.documents);
     } catch (error) {
       setMessage({
         type: "error",
@@ -52,38 +52,46 @@ export function DocumentList({ refreshTrigger }) {
             : "Failed to download document",
       });
     }
+     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this document?")) {
-      return;
-    }
+const handleDelete = async (id) => {
+  if (!confirm("Are you sure you want to delete this document?")) {
+    return;
+  }
 
-    try {
-      await api.deleteDocument(id);
-      setMessage({ type: "success", text: "Document deleted successfully!" });
-      fetchDocuments();
-    } catch (error) {
-      setMessage({
-        type: "error",
-        text:
-          error instanceof Error ? error.message : "Failed to delete document",
-      });
-    }
-  };
+  try {
+    await api.deleteDocument(id);
+    setMessage({
+      type: "success",
+      text: "Document deleted successfully!",
+    });
+    fetchDocuments();
+  } catch (error) {
+    setMessage({
+      type: "error",
+      text: error.message || "Failed to delete document",
+    });
+  }
+   setTimeout(() => setMessage(null), 3000);
+};
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
+const formatFileSize = (bytes) => {
+  if (!bytes || isNaN(bytes)) return "N/A";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+};
+
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
+};
+
 
   if (loading) {
     return <div className="loading">Loading documents...</div>;

@@ -1,71 +1,37 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const BASE_URL = "http://127.0.0.1:5000";
 
 export const api = {
-  async uploadDocument(file) {
+  async uploadDocument(file, assignmentId) {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("assignmentId", assignmentId);
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/upload-document`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const res = await fetch(`${BASE_URL}/upload-document`, {
+      method: "POST",
+      body: formData,
+    });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to upload document");
-    }
-
-    const data = await response.json();
-    return data.document;
+    if (!res.ok) throw new Error("Failed to upload document");
+    return await res.json(); 
   },
 
   async listDocuments() {
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/list-documents`,
-      {
-        method: "GET",
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to fetch documents");
-    }
-
-    const data = await response.json();
-    return data.documents;
+    const res = await fetch(`${BASE_URL}/list-documents`);
+    if (!res.ok) throw new Error("Failed to fetch documents");
+    return await res.json(); 
   },
 
   async downloadDocument(id) {
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/download-document?id=${id}`,
-      {
-        method: "GET",
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to download document");
-    }
-
-    return await response.blob();
+    const res = await fetch(`${BASE_URL}/download-document?id=${id}`);
+    if (!res.ok) throw new Error("Failed to download document");
+    return await res.blob(); 
   },
 
   async deleteDocument(id) {
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/delete-document?id=${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to delete document");
-    }
+    const res = await fetch(`${BASE_URL}/delete-document?id=${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete document");
+    return await res.json();
   },
 };
